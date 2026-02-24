@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.dailycommit.plugin</id>
     <name>Daily Commit Manager</name>
-    <vendor email="support@example.com" url="https://example.com">Your Company</vendor>
+    <vendor url="https://github.com/WalkingPineapple/daily-commit-plugin">P1neapple</vendor>
 
     <description><![CDATA[
     <p>每日代码提交管理和工作总结生成工具</p>

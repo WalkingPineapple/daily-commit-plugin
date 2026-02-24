@@ -192,7 +192,7 @@ MIT License
 
 ## 作者
 
-Your Name <your.email@example.com>
+P1neapple
 
 ## 贡献
 
