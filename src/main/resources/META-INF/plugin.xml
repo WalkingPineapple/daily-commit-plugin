@@ -1,0 +1,80 @@
+<idea-plugin>
+    <id>com.dailycommit.plugin</id>
+    <name>Daily Commit Manager</name>
+    <vendor email="support@example.com" url="https://example.com">Your Company</vendor>
+
+    <description><![CDATA[
+    <p>每日代码提交管理和工作总结生成工具</p>
+    <p><b>核心功能：</b></p>
+    <ul>
+      <li>每天强制提交代码（可配置）</li>
+      <li>使用 LLM 自动生成 commit message</li>
+      <li>自动生成每日工作总结</li>
+      <li>每周四自动生成周工作总结</li>
+      <li>支持国内主流 LLM（通义千问、文心一言、智谱GLM、DeepSeek等）</li>
+    </ul>
+    ]]></description>
+
+    <change-notes><![CDATA[
+    <h3>1.0.0</h3>
+    <ul>
+      <li>初始版本发布</li>
+      <li>支持每日强制提交</li>
+      <li>集成 LLM 生成 commit message</li>
+      <li>自动生成日总结和周总结</li>
+    </ul>
+    ]]></change-notes>
+
+    <!-- 依赖 -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>Git4Idea</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- 通知组 -->
+        <notificationGroup id="Daily Commit Manager" displayType="BALLOON"/>
+
+        <!-- 应用级配置 -->
+        <applicationConfigurable
+            parentId="tools"
+            instance="com.dailycommit.plugin.config.PluginConfigurable"
+            id="com.dailycommit.plugin.config.PluginConfigurable"
+            displayName="Daily Commit Manager"/>
+
+        <!-- 持久化配置服务 -->
+        <applicationService
+            serviceImplementation="com.dailycommit.plugin.config.PluginSettings"/>
+
+        <!-- 项目启动活动 -->
+        <postStartupActivity
+            implementation="com.dailycommit.plugin.listeners.ProjectStartupListener"/>
+    </extensions>
+
+    <actions>
+        <!-- 生成周总结 Action -->
+        <action id="com.dailycommit.plugin.actions.GenerateWeeklySummaryAction"
+                class="com.dailycommit.plugin.actions.GenerateWeeklySummaryAction"
+                text="Generate Weekly Summary"
+                description="Generate weekly work summary based on commits"
+                icon="AllIcons.Actions.Edit">
+            <add-to-group group-id="VcsGroups" anchor="last"/>
+        </action>
+
+        <!-- 查看总结历史 Action -->
+        <action id="com.dailycommit.plugin.actions.ViewSummariesAction"
+                class="com.dailycommit.plugin.actions.ViewSummariesAction"
+                text="View Work Summaries"
+                description="View daily and weekly work summaries"
+                icon="AllIcons.Actions.Show">
+            <add-to-group group-id="VcsGroups" anchor="last"/>
+        </action>
+
+        <!-- 手动触发日总结 Action -->
+        <action id="com.dailycommit.plugin.actions.GenerateDailySummaryAction"
+                class="com.dailycommit.plugin.actions.GenerateDailySummaryAction"
+                text="Generate Daily Summary"
+                description="Generate today's work summary"
+                icon="AllIcons.Actions.Edit">
+            <add-to-group group-id="VcsGroups" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>
