@@ -10,7 +10,7 @@ import java.awt.Dimension
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPanel
-
+import javax.swing.Action
 /**
  * 首次运行配置向导
  */
@@ -70,7 +70,7 @@ class FirstRunWizard(private val project: Project) : DialogWrapper(project, true
     override fun createActions() = arrayOf(cancelAction)
 
     override fun getCancelAction() = super.getCancelAction().apply {
-        putValue(NAME, "稍后配置")
+        putValue(Action.NAME, "稍后配置")
     }
 
     companion object {

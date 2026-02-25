@@ -15,7 +15,7 @@ import javax.swing.JPanel
  */
 class SummaryPreviewDialog(
     private val project: Project,
-    private val title: String,
+    private val dialogTitle: String,
     private val summary: String,
     private val onSave: (String) -> Unit
 ) : DialogWrapper(project, true) {
@@ -23,7 +23,7 @@ class SummaryPreviewDialog(
     private val summaryArea = JBTextArea(summary, 20, 70)
 
     init {
-        this.title = title
+        title = dialogTitle
         init()
         setOKButtonText("保存")
         setCancelButtonText("取消")
@@ -34,7 +34,7 @@ class SummaryPreviewDialog(
         panel.preferredSize = Dimension(800, 500)
 
         // 顶部提示
-        val topLabel = JBLabel("<html><b>$title</b><br><i>您可以编辑以下内容后保存</i></html>")
+        val topLabel = JBLabel("<html><b>$dialogTitle</b><br><i>您可以编辑以下内容后保存</i></html>")
         panel.add(topLabel, BorderLayout.NORTH)
 
         // 中间编辑区
