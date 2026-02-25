@@ -5,14 +5,13 @@ import com.dailycommit.plugin.llm.models.LLMResponse
 import com.dailycommit.plugin.llm.models.Message
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
+import io.ktor.client.engine.java.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import io.ktor.network.sockets.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.SerializationException
 import java.net.UnknownHostException
@@ -29,7 +28,10 @@ class OpenAICompatibleClient(
     private val model: String
 ) : LLMClient {
 
-    private val client = HttpClient(CIO) {
+    private val client = HttpClient(Java) {
+        // 禁用默认的响应验证，避免日志相关的类加载问题
+        expectSuccess = false
+
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true

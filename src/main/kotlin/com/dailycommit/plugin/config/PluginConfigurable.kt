@@ -10,10 +10,8 @@ import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.FormBuilder
 import com.dailycommit.plugin.llm.OpenAICompatibleClient
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.intellij.openapi.application.ApplicationManager
+import kotlinx.coroutines.runBlocking
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.Dimension
@@ -234,7 +232,8 @@ class PluginConfigurable : Configurable {
         testApiButton.isEnabled = false
         testStatusLabel.text = "<html><span style='color:blue;'>⏳ 测试中...</span></html>"
 
-        CoroutineScope(Dispatchers.IO).launch {
+        // 在后台线程执行测试
+        ApplicationManager.getApplication().executeOnPooledThread {
             try {
                 val client = OpenAICompatibleClient(
                     baseUrl = apiBaseUrl,
@@ -242,14 +241,18 @@ class PluginConfigurable : Configurable {
                     model = modelName
                 )
 
-                client.testConnection()
+                // 使用 runBlocking 调用 suspend 函数
+                runBlocking {
+                    client.testConnection()
+                }
 
-                withContext(Dispatchers.Main) {
+                // 切换到 UI 线程更新界面
+                SwingUtilities.invokeLater {
                     testStatusLabel.text = "<html><span style='color:green;'>✓ API 连接成功！</span></html>"
                     testApiButton.isEnabled = true
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
+                SwingUtilities.invokeLater {
                     val errorMsg = when {
                         e.message != null -> e.message!!
                         else -> "连接失败"

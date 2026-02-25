@@ -8,11 +8,11 @@ import com.dailycommit.plugin.ui.SummaryPreviewDialog
 import com.dailycommit.plugin.utils.DateUtils
 import com.dailycommit.plugin.utils.NotificationUtils
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.runBlocking
 
 /**
  * 周总结生成器
@@ -43,45 +43,62 @@ class WeeklySummaryGenerator(private val project: Project) {
             return
         }
 
-        // 异步生成总结
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val client = OpenAICompatibleClient(
-                    baseUrl = settings.apiBaseUrl,
-                    apiKey = settings.apiKey,
-                    model = settings.modelName
-                )
+        // 使用 IntelliJ 平台的后台任务 API
+        ProgressManager.getInstance().run(object : Task.Backgroundable(project, "生成周总结...", true) {
+            var generatedSummary: String? = null
+            var error: Exception? = null
 
-                val weekRange = "${DateUtils.formatDate(weekStart)} 至 ${DateUtils.formatDate(weekEnd)}"
-                val (systemMessage, userMessage) = PromptBuilder.buildWeeklySummaryPrompt(
-                    weekCommits,
-                    weekRange
-                )
+            override fun run(indicator: ProgressIndicator) {
+                try {
+                    indicator.text = "正在调用 LLM API..."
 
-                val generatedSummary = client.generateText(systemMessage, userMessage)
+                    val client = OpenAICompatibleClient(
+                        baseUrl = settings.apiBaseUrl,
+                        apiKey = settings.apiKey,
+                        model = settings.modelName
+                    )
 
-                withContext(Dispatchers.Main) {
+                    val weekRange = "${DateUtils.formatDate(weekStart)} 至 ${DateUtils.formatDate(weekEnd)}"
+                    val (systemMessage, userMessage) = PromptBuilder.buildWeeklySummaryPrompt(
+                        weekCommits,
+                        weekRange
+                    )
+
+                    // 在后台线程中同步调用
+                    generatedSummary = runBlocking {
+                        client.generateText(systemMessage, userMessage)
+                    }
+
+                } catch (e: Exception) {
+                    error = e
+                }
+            }
+
+            override fun onSuccess() {
+                val summary = generatedSummary
+                if (summary != null) {
+                    val weekRange = "${DateUtils.formatDate(weekStart)} 至 ${DateUtils.formatDate(weekEnd)}"
                     if (showPreview) {
                         // 显示预览对话框，允许用户编辑
                         ApplicationManager.getApplication().invokeLater {
                             SummaryPreviewDialog.showWeeklySummaryPreview(
                                 project,
-                                generatedSummary
+                                summary
                             ) { editedSummary ->
                                 saveWeeklySummary(editedSummary, weekRange)
                             }
                         }
                     } else {
-                        saveWeeklySummary(generatedSummary, weekRange)
+                        saveWeeklySummary(summary, weekRange)
                     }
                 }
-
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    NotificationUtils.showLLMError(project, e.message ?: "Unknown error")
-                }
             }
-        }
+
+            override fun onThrowable(throwable: Throwable) {
+                val e = error ?: throwable
+                NotificationUtils.showLLMError(project, e.message ?: "Unknown error")
+            }
+        })
     }
 
     /**
