@@ -16,6 +16,34 @@ data class PluginSettingsState(
     var modelName: String = "gpt-3.5-turbo",
     var llmProvider: String = LLMProvider.OPENAI.name,
 
+    // 提示词配置
+    var commitMessagePrompt: String = """你是一个专业的代码提交消息生成助手。
+请根据代码改动，生成简洁、清晰的 Git commit message。
+遵循以下规则：
+1. 使用中文
+2. 第一行是简短的摘要（不超过 50 字）
+3. 如果需要，第二行空行，第三行开始详细描述
+4. 使用动词开头（如：添加、修复、更新、重构等）
+5. 说明改动的目的和影响，而不仅仅是改动内容""",
+
+    var dailySummaryPrompt: String = """你是一个专业的工作总结助手。
+请根据今天的代码提交记录，生成一份简洁的工作总结。
+要求：
+1. 使用中文
+2. 总结今天完成的主要工作（3-5 条）
+3. 每条工作用一句话概括，突出重点
+4. 按重要性排序
+5. 格式简洁，易于阅读""",
+
+    var weeklySummaryPrompt: String = """你是一个专业的工作总结助手。
+请根据本周的代码提交记录，生成一份工作周报。
+要求：
+1. 使用中文
+2. 分类总结本周工作（如：新功能、Bug 修复、优化等）
+3. 每个分类列出 2-3 个主要成果
+4. 突出本周的重点工作和成果
+5. 格式清晰，适合向上汇报""",
+
     // 强制提交配置
     var enableDailyCommitCheck: Boolean = true,
     var checkWorkdaysOnly: Boolean = true,
